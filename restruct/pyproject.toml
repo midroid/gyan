@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "gyan-restruct"
+version = "0.1.0"
+description = ""
+authors = ["Chauhan Akash <ch.m.aakash@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = {extras = ["standard"], version = "^0.115.5"}
+docling = "^2.7.0"
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.10.1"
+pytest = "^8.3.3"
+mypy = "^1.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
