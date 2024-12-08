@@ -98,24 +98,35 @@ def get_tables_from_docling_document(conv_result: ConversionResult, table_output
 
 def get_pictures_from_docling_document(conv_result: ConversionResult):
     # for picture in conv_result.document.pictures:
-    #     print(picture)
-    #     print(type(picture))
     #     print(dir(picture))
-    #     # print(picture.image)
     #     # print(picture.export_to_markdown(conv_result.document))
-    #     print(picture.get_image(conv_result.document))
-    #     print(picture.get_ref())
-    #     # picture.image = picture._image_to_base64(picture.get_image(conv_result.document))
-    #     # print(picture.get_image())
-    #     # print(picture.image_ref)
     # for element, _level in conv_result.document.iterate_items():
     #     if isinstance(element, PictureItem):
-    #         print("Picture item found")
     #         # element.get_image(conv_result.document).save(, "PNG")
     #         print(element.get_image(conv_result.document))
-    #         print(type(element.get_image(conv_result.document)))
 
     return conv_result.document.pictures
+
+def get_parser_response_by_type(parse_type: ParseType, conv_result: ConversionResult):
+    conv_result_document = conv_result.document
+    parse_response_value = ""
+    match parse_type.value:
+        case ParseType.page:
+            parse_response_value = conv_result.pages
+        case ParseType.assembled:
+            parse_response_value = conv_result.assembled
+        case ParseType.table:
+            parse_response_value = conv_result_document.tables
+        case ParseType.pictures:
+            parse_response_value = get_pictures_from_docling_document(conv_result)
+        case ParseType.document:
+            parse_response_value = conv_result_document
+        case ParseType.all:
+            parse_response_value = conv_result_document
+        case _:
+            parse_response_value = conv_result_document
+
+    return parse_response_value
 
 def docling_parse_export_tables(file_parse_body: FileParseBody):
     doc_converter = get_document_converter()

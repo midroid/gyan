@@ -19,7 +19,7 @@ from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.pipeline_options import PdfPipelineOptions, TableFormerMode
 
 from restruct.models import FileParseBody, ParseType
-from restruct.parse import docling_parse_export_tables, docling_parse_advanced, get_pictures_from_docling_document
+from restruct.parse import docling_parse_export_tables, docling_parse_advanced, get_parser_response_by_type, get_pictures_from_docling_document
 
 # from src.restruct.parse import docling_parse_test
 
@@ -66,12 +66,14 @@ def test_docling_parse():
 
 @app.post("/upload/bulk")
 def upload_bulk():
-    return {"Hello": "World"}
+    # TODO: Implement Bulk Upload Only
+    return {"Result": "NOT IMPLEMENTED"}
 
 
 @app.post("/upload/single")
 def upload_single(file: UploadFile = File(...)):
-    return {"Hello": "World"}
+    # TODO: Implement Single Upload Only
+    return {"Result": "NOT IMPLEMENTED"}
 
 
 @app.post("/docling/parse/upload/single")
@@ -85,24 +87,7 @@ async def parse_upload_single(file: UploadFile = File(...), parse_type: ParseTyp
         "file_id": file_id,
     }
     parse_resp = docling_parse_advanced(file_parse_body)
-    parse_response_value = ""
-    parse_response_document =  parse_resp.document
-    
-    match parse_type.value:
-        case ParseType.page:
-            parse_response_value = parse_resp.pages
-        case ParseType.assembled:
-            parse_response_value = parse_resp.assembled
-        case ParseType.table:
-            parse_response_value = parse_response_document.tables
-        case ParseType.pictures:
-            parse_response_value = get_pictures_from_docling_document(parse_resp)
-        case ParseType.document:
-            parse_response_value = parse_response_document
-        case ParseType.all:
-            parse_response_value = parse_response_document
-        case _:
-            parse_response_value = parse_response_document
+    parse_response_value = get_parser_response_by_type(parse_type, parse_resp)
 
     return {
         "result": True,
@@ -129,4 +114,5 @@ async def parse_single_export_tables(file: UploadFile = File(...)):
 
 @app.post("/docling/parse/upload/bulk")
 def parse_upload_bulk():
+    # TODO: Implement Bulk API
     return {"Hello": "World"}
