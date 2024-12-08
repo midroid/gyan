@@ -8,6 +8,8 @@ from docling.datamodel.pipeline_options import PdfPipelineOptions, TableFormerMo
 from docling_core.types.doc import TableItem, TextItem, ImageRefMode, PictureItem
 from docling.datamodel.document import ConversionResult
 
+from PIL import Image, ImageDraw
+
 from restruct.models import FileParseBody, ParseType
 
 IMAGE_RESOLUTION_SCALE = 2.0
@@ -133,3 +135,53 @@ def docling_parse_export_tables(file_parse_body: FileParseBody):
     conv_res = get_docling_parse_converter_result(doc_converter, file_parse_body)
     tables_md = get_tables_from_docling_document(conv_result=conv_res)
     return tables_md
+
+
+def draw_plot(image, bbox):
+    draw = ImageDraw.Draw(image)
+
+    # Define rectangle coordinates (x0, y0, x1, y1)
+    # rectangle_coords = (100, 100, 300, 300)
+    # rectangle_coords = (bbox["l"], bbox["t"], bbox["r"], bbox["b"])
+    rectangle_coords = bbox
+    draw.rectangle(rectangle_coords, outline='red', width=3)
+    return image
+
+
+def plot_page_layout(conv_res: ConversionResult, page_no: int) -> BytesIO:
+    target_page = None
+    page_layout_cluster = []
+    for page in conv_res.pages:
+        if page.page_no == page_no - 1:
+            target_page = page
+            page_layout_cluster = page.predictions.layout.clusters
+            break
+
+    page = conv_res.document.pages[1]
+    # Save page images
+    # for page_no, page in conv_res.document.pages.items():
+        # page_image = page.export_to_image()
+    page_image = page.image
+    # print(page_image)
+    page_image_pil = page.image.pil_image
+    print(page_image_pil)
+    # page_image.save()
+    page_image_filename = f"./plot_page_{page_no}.png"
+
+
+    # plot page layout
+    for layout_element in page_layout_cluster:
+        label = layout_element.label
+        bbox = layout_element.bbox.as_tuple()
+        print({
+            "label": label,
+            "bbox": bbox
+        })
+        page_image_pil = draw_plot(page_image_pil, bbox)
+
+    bytes_io = BytesIO()
+    with open(page_image_filename, "wb") as fp:
+        page.image.pil_image.save(fp, format="PNG")
+        page_image_pil.save(bytes_io, format="PNG")
+
+    return bytes_io

@@ -5,7 +5,7 @@ from uuid import uuid4
 from io import BytesIO
 import base64
 
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Response, UploadFile
 from pydantic import BaseModel
 import pandas as pd
 
@@ -20,7 +20,7 @@ from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.pipeline_options import PdfPipelineOptions, TableFormerMode
 
 from restruct.models import FileParseBody, ParseType
-from restruct.parse import docling_parse_export_tables, docling_parse_advanced, get_parser_response_by_type, get_pictures_from_docling_document
+from restruct.parse import docling_parse_export_tables, docling_parse_advanced, get_parser_response_by_type, get_pictures_from_docling_document, plot_page_layout
 
 # from src.restruct.parse import docling_parse_test
 
@@ -156,18 +156,26 @@ async def parse_plot(file: UploadFile = File(...)):
     print(dir(page_image_pil))
     # page_image_pil.show()
 
+    plotted_image_bytes = plot_page_layout(conv_res, 1)
+
     # page_image_pil_uri = page_image_pil.to_uri()
     page_image_pil_base64 = base64.b64encode(bytes_io.getbuffer()).decode('utf-8')
     page_image_uri = f"data:image/png;base64,{page_image_pil_base64}"
     print(page_image_uri)
-    page_image_markdown = f"![page_image_md]({page_image_uri})"
+    # page_image_markdown = f"![page_image_md]({page_image_uri})"
 
-    return {
-        "result": True,
-        "image_location": f"page_{page_no}.png",
-        "page_image": page_image_uri,
-        "page_image_markdown": page_image_markdown
-    }
+    # return {
+    #     "result": True,
+    #     "image_location": f"page_{page_no}.png",
+    #     "page_image": page_image_uri,
+    #     "page_image_markdown": page_image_markdown
+    # }
+
+    # Generate your image here (e.g., using PIL)
+    # img_byte_arr = BytesIO()
+    # Save your generated image to img_byte_arr
+    plotted_image_bytes.seek(0)
+    return Response(content=plotted_image_bytes.getvalue(), media_type="image/png")
 
 
 @app.post("/docling/parse/upload/bulk")
