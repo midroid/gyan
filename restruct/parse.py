@@ -36,7 +36,7 @@ def get_document_converter():
 
     # Image Options
     # pipeline_options.images_scale = IMAGE_RESOLUTION_SCALE
-    # pipeline_options.generate_page_images = True
+    pipeline_options.generate_page_images = True
     pipeline_options.generate_picture_images = True
 
     pipeline_options.table_structure_options.do_cell_matching = True  # uses text cells predicted from table structure model

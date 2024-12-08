@@ -3,6 +3,7 @@ import json
 import logging
 from uuid import uuid4
 from io import BytesIO
+import base64
 
 from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel
@@ -66,12 +67,24 @@ def test_docling_parse():
 
 @app.post("/upload/bulk")
 def upload_bulk():
+    """
+    Upload bulk of files to storage which can be later consumed in batch processing.
+
+    Returns:
+        success: True if the upload is successful
+    """
     # TODO: Implement Bulk Upload Only
     return {"Result": "NOT IMPLEMENTED"}
 
 
 @app.post("/upload/single")
 def upload_single(file: UploadFile = File(...)):
+    """
+    Upload a file to storage which can be later consumed in batch processing.
+
+    Returns:
+        success: True if the upload is successful
+    """
     # TODO: Implement Single Upload Only
     return {"Result": "NOT IMPLEMENTED"}
 
@@ -112,7 +125,52 @@ async def parse_single_export_tables(file: UploadFile = File(...)):
         "parse_resp": parse_resp
     }
 
+
+@app.post("/docling/parse/plot")
+async def parse_plot(file: UploadFile = File(...)):
+    file_name = file.filename
+    file_bytes_data = await file.read()
+    file_id = uuid4()
+    file_parse_body: FileParseBody = {
+        "file_name": file_name,
+        "file_bytes": file_bytes_data,
+        "file_id": file_id,
+    }
+    conv_res = docling_parse_advanced(file_parse_body)
+
+    # Save page images
+    for page_no, page in conv_res.document.pages.items():
+        # page_image = page.export_to_image()
+        page_image = page.image
+        # print(page_image)
+        page_image_pil = page.image.pil_image
+        print(page_image_pil)
+        # page_image.save()
+        page_image_filename = f"./page_{page_no}.png"
+        bytes_io = BytesIO()
+        with open(page_image_filename, "wb") as fp:
+            page.image.pil_image.save(fp, format="PNG")
+            page_image_pil.save(bytes_io, format="PNG")
+
+    print(type(page_image_pil))
+    print(dir(page_image_pil))
+    # page_image_pil.show()
+
+    # page_image_pil_uri = page_image_pil.to_uri()
+    page_image_pil_base64 = base64.b64encode(bytes_io.getbuffer()).decode('utf-8')
+    page_image_uri = f"data:image/png;base64,{page_image_pil_base64}"
+    print(page_image_uri)
+    page_image_markdown = f"![page_image_md]({page_image_uri})"
+
+    return {
+        "result": True,
+        "image_location": f"page_{page_no}.png",
+        "page_image": page_image_uri,
+        "page_image_markdown": page_image_markdown
+    }
+
+
 @app.post("/docling/parse/upload/bulk")
 def parse_upload_bulk():
     # TODO: Implement Bulk API
-    return {"Hello": "World"}
+    return {"Response": "NOT IMPLEMENTED"}
